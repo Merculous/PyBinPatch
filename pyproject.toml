@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "PyBinPatch"
+version = "1.0"
+description = "Simple diff and patch functions for binaries"
+authors = ["Merculous <24739823+Merculous@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "binpatch"}]
+license = "MIT"
+repository = "https://github.com/Merculous/PyBinPatch"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
