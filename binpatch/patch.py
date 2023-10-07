@@ -5,10 +5,14 @@ from .file import readBinaryFromPath, readJsonAtPath, writeBinaryToPath
 def patchBufferAtIndex(data, index, old, new):
     index_int = int(index, base=16)
 
-    old = b''.fromhex(old)
+    if isinstance(old, str):
+        old = b''.fromhex(old)
+
     old_len = len(old)
 
-    new = b''.fromhex(new)
+    if isinstance(new, str):
+        new = b''.fromhex(new)
+
     new_len = len(new)
 
     if old_len != new_len:
