@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "binpatch"
+name = "pybinpatch"
 version = "1.0"
 description = "Binary diff/patch library"
 authors = ["Merculous <24739823+Merculous@users.noreply.github.com>"]
-license = "MIT"
 readme = "README.md"
+packages = [{include = "binpatch"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
