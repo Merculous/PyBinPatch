@@ -5,6 +5,7 @@ description = "Binary diff/patch library"
 authors = ["Merculous <24739823+Merculous@users.noreply.github.com>"]
 readme = "README.md"
 packages = [{include = "binpatch"}]
+repository = "https://github.com/Merculous/PyBinPatch"
 
 [tool.poetry.dependencies]
 python = "^3.11"
