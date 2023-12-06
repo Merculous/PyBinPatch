@@ -1,0 +1,9 @@
+
+The diff code seems to be working as expected.
+
+The only caveat is that it fails to group certain sections together that
+are actually capable of being grouped.
+
+In terms of getting all of the differences, I think it gets everything. So,
+the only thing that needs updating is the offset checking. The rest of the diff
+code seems to be ok for now.

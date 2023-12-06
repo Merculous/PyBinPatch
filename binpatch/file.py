@@ -4,7 +4,7 @@ import json
 
 def readBinaryFromPath(path):
     with open(path, 'rb') as f:
-        return bytearray(f.read())
+        return f.read()
 
 
 def writeBinaryToPath(path, data):

@@ -1,7 +1,7 @@
 
 from argparse import ArgumentParser
 
-from .diff import createDiffAtPath
+from .diff import Diff
 from .patch import patchFilesWithJson
 
 
@@ -15,7 +15,8 @@ def main():
     args = parser.parse_args()
 
     if args.diff:
-        createDiffAtPath(*args.diff)
+        diff_obj = Diff(*args.diff)
+        diff_obj.writeDiffToPath()
 
     elif args.patch:
         patchFilesWithJson(*args.patch)
