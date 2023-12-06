@@ -126,17 +126,6 @@ class Diff:
                     start_offset = next_offset_int
                     last_offset = start_offset
 
-            else:
-                # FIXME
-                # I never hit this so I think if my code is correct,
-                # I shouldn't even hit this bit. I guess I'll leave it
-                # for now, but it might be useless?
-
-                differences_updated[offset] = {
-                    'old': v1,
-                    'new': v2
-                }
-
         return differences_updated
 
     def writeDiffToPath(self):
