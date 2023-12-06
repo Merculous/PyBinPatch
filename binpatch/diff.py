@@ -74,6 +74,8 @@ class Diff:
                 continue
 
             if offset_int != last_offset + 1:
+                start_offset_hex = hex(start_offset)
+
                 if start_offset_hex not in differences_updated:
                     differences_updated[start_offset_hex] = {
                         'old': old_buff,
