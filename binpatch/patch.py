@@ -16,30 +16,30 @@ def patchBufferAtIndex(data, index, old, new):
     new_len = len(new)
 
     if old_len != new_len:
-        raise ArithmeticError
+        raise Exception('Source lengths differ!')
 
     buffer = data[index_int:index_int+old_len]
     buffer_len = len(buffer)
 
     if buffer_len != old_len:
-        raise ArithmeticError
+        raise Exception('Buffer size mismatch!')
 
     if buffer == old:
         data[index_int:index_int+old_len] = new
 
 
 def patchFilesWithJson(path1, path2, file):
-    patched_data = readBinaryFromPath(path1)
+    data = readBinaryFromPath(path1)
 
     patch_info = readJsonAtPath(file)
 
     for offset in patch_info:
-        original = patch_info[offset]['original']
-        patched = patch_info[offset]['patched']
+        old = patch_info[offset]['old']
+        new = patch_info[offset]['new']
 
         print(f'Patching at offset: {offset}')
-        print(f'{original} -> {patched}')
+        print(f'{old} -> {new}')
 
-        patchBufferAtIndex(patched_data, offset, original, patched)
+        patchBufferAtIndex(data, offset, old, new)
 
-    writeBinaryToPath(path2, patched_data)
+    writeBinaryToPath(path2, data)

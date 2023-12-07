@@ -45,8 +45,6 @@ class Diff:
 
                 differences.append(difference)
 
-        iter_differences = iter(differences)
-
         differences_updated = {}
 
         start_offset = 0
@@ -55,78 +53,45 @@ class Diff:
         old_buff = ''
         new_buff = ''
 
-        for offset, v1, v2 in iter_differences:
-            try:
-                next_offset, next_v1, next_v2 = next(iter_differences)
-            except StopIteration:
-                break
-
+        for offset, v1, v2 in differences:
             offset_int = int(offset, 16)
-            next_offset_int = int(next_offset, 16)
 
             if start_offset == 0:
-                old_buff = v1 + next_v1
-                new_buff = v2 + next_v2
+                # First difference
 
                 start_offset = offset_int
-                last_offset = next_offset_int
-
-                continue
-
-            if offset_int != last_offset + 1:
-                start_offset_hex = hex(start_offset)
-
-                if start_offset_hex not in differences_updated:
-                    differences_updated[start_offset_hex] = {
-                        'old': old_buff,
-                        'new': new_buff
-                    }
-
-                old_buff = ''
-                new_buff = ''
-
-                start_offset = offset_int
-                last_offset = start_offset - 1
-
-            if offset_int == last_offset + 1:
-                start_offset_hex = hex(start_offset)
+                last_offset = start_offset
 
                 old_buff += v1
                 new_buff += v2
 
-                if start_offset_hex in differences_updated:
-                    differences_updated[start_offset_hex]['old'] += old_buff
-                    differences_updated[start_offset_hex]['new'] += new_buff
+                continue
 
-                    old_buff = ''
-                    new_buff = ''
-
+            if offset_int == last_offset + 1:
                 last_offset = offset_int
 
-                if next_offset_int == offset_int + 1:
-                    old_buff += next_v1
-                    new_buff += next_v2
+                old_buff += v1
+                new_buff += v2
 
-                    if start_offset_hex in differences_updated:
-                        differences_updated[start_offset_hex]['old'] += old_buff
-                        differences_updated[start_offset_hex]['new'] += new_buff
+            else:
+                differences_updated[hex(start_offset)] = {
+                    'old': old_buff,
+                    'new': new_buff
+                }
 
-                        old_buff = ''
-                        new_buff = ''
+                old_buff = v1
+                new_buff = v2
 
-                    last_offset = next_offset_int
+                start_offset = offset_int
+                last_offset = start_offset
 
-                else:
-                    differences_updated[next_offset] = {
-                        'old': next_v1,
-                        'new': next_v2
-                    }
+            # Add the last difference
 
-                    old_buff = ''
-                    new_buff = ''
-
-                    start_offset = next_offset_int
-                    last_offset = start_offset
+            if offset == differences[-1][0]:
+                differences_updated[hex(start_offset)] = {
+                    'old': old_buff,
+                    'new': new_buff
+                }
 
         return differences_updated
 
