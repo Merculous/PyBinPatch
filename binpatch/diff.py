@@ -14,36 +14,32 @@ class Diff:
         self.src1_data = readBinaryFromPath(self.src1_path)
         self.src2_data = readBinaryFromPath(self.src2_path)
 
-        self.src1_len = len(self.src1_data)
-        self.src2_len = len(self.src2_data)
-
-        self.same_sizes = True if self.src1_len == self.src2_len else False
-
     def diff(self):
-        data1 = iter(self.src1_data)
-        data2 = iter(self.src2_data)
+        data1 = self.src1_data
+        data2 = self.src2_data
 
         differences = []
 
-        for i, (v1, v2) in enumerate(zip_longest(data1, data2)):
-            if not isinstance(v1, int):
-                pass
+        while data1 and data2:
+            try:
+                for i, (v1, v2) in enumerate(zip_longest(next(data1), next(data2))):
+                    if not isinstance(v1, int) or not isinstance(v2, int):
+                        raise Exception('Input files are not the same size!')
 
-            if not isinstance(v2, int):
-                pass
+                    if v1 != v2:
+                        offset = hex(i)
 
-            if v1 != v2:
-                offset = hex(i)
+                        v1 = v1.to_bytes(1, 'little')
+                        v2 = v2.to_bytes(1, 'little')
 
-                v1 = v1.to_bytes(1, 'little')
-                v2 = v2.to_bytes(1, 'little')
+                        v1 = binascii.hexlify(v1).decode('utf-8')
+                        v2 = binascii.hexlify(v2).decode('utf-8')
 
-                v1 = binascii.hexlify(v1).decode('utf-8')
-                v2 = binascii.hexlify(v2).decode('utf-8')
+                        difference = (offset, v1, v2)
 
-                difference = (offset, v1, v2)
-
-                differences.append(difference)
+                        differences.append(difference)
+            except StopIteration:
+                break
 
         differences_updated = {}
 
@@ -95,10 +91,8 @@ class Diff:
 
         return differences_updated
 
-    def writeDiffToPath(self):
+    def writeDiffToPath(self, data):
         if not self.diff_path:
             raise Exception('Please set a diff path!')
 
-        differences = self.diff()
-
-        writeJsonToPath(self.diff_path, differences)
+        writeJsonToPath(self.diff_path, data)

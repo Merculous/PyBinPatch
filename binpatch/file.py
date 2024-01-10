@@ -2,9 +2,15 @@
 import json
 
 
-def readBinaryFromPath(path):
+def readBinaryFromPath(path, chunk_size=4096):
     with open(path, 'rb') as f:
-        return bytearray(f.read())
+        while True:
+            data = f.read(chunk_size)
+
+            if not data:
+                break
+
+            yield data
 
 
 def writeBinaryToPath(path, data):

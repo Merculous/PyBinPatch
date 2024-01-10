@@ -50,9 +50,7 @@ def find(pattern, data):
                 j = lps[j - 1]
 
         if j == pattern_len:
-            offset = hex(i - pattern_len)
-            print(f'Found pattern at offset: {offset}')
+            offset = i - pattern_len
             return offset
 
-    print('Did not find pattern!')
     return None
