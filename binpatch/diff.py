@@ -20,24 +20,26 @@ class Diff:
 
         differences = []
 
+        offset = 0
+
         while data1 and data2:
             try:
-                for i, (v1, v2) in enumerate(zip_longest(next(data1), next(data2))):
+                for v1, v2 in zip_longest(next(data1), next(data2)):
                     if not isinstance(v1, int) or not isinstance(v2, int):
                         raise Exception('Input files are not the same size!')
 
                     if v1 != v2:
-                        offset = hex(i)
-
                         v1 = v1.to_bytes(1, 'little')
                         v2 = v2.to_bytes(1, 'little')
 
                         v1 = binascii.hexlify(v1).decode('utf-8')
                         v2 = binascii.hexlify(v2).decode('utf-8')
 
-                        difference = (offset, v1, v2)
+                        difference = (hex(offset), v1, v2)
 
                         differences.append(difference)
+
+                    offset += 1
             except StopIteration:
                 break
 
