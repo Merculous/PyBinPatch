@@ -1,26 +1,28 @@
 
 from argparse import ArgumentParser
 
-from .diff import Diff
-from .patch import patchFilesWithJson
+from .diff import findDifferences, printDifferences
+from .file import readDataFromPath
 
 
 def main():
     parser = ArgumentParser()
 
-    parser.add_argument('--diff', nargs=3)
-    parser.add_argument('--patch', nargs=3)
+    parser.add_argument('-orig', nargs=1)
+    parser.add_argument('-patched', nargs=1)
 
     args = parser.parse_args()
 
-    if args.diff:
-        differ = Diff(*args.diff)
-        differences = differ.diff()
-        differ.writeDiffToPath(differences)
-    elif args.patch:
-        patchFilesWithJson(*args.patch)
+    if all((args.orig, args.patched)):
+        orig_data = readDataFromPath(args.orig[0])
+        patched_data = readDataFromPath(args.patched[0])
+
+        differences = findDifferences(orig_data, patched_data)
+        printDifferences(differences)
+
     else:
         parser.print_help()
 
 
-main()
+if __name__ == '__main__':
+    main()
