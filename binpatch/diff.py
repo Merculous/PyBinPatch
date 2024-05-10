@@ -1,7 +1,9 @@
 
 from binascii import hexlify
+from dataclasses import asdict
 
 from .errors import SizeMismatch
+from .file import writeJSONToPath
 from .types import Difference
 
 
@@ -60,3 +62,17 @@ def printDifferences(differences: list[Difference]) -> None:
         print(f'Size: {diff.size:x}')
         print(f'Original: {hexlify(diff.orig).decode("utf-8")}')
         print(f'Patched: {hexlify(diff.new).decode("utf-8")}')
+
+
+def serializeDifference(difference: Difference) -> dict:
+    diff = difference
+    diff.orig = hexlify(diff.orig).decode('utf-8')
+    diff.new = hexlify(diff.new).decode('utf-8')
+    diff = asdict(diff)
+    return diff
+
+
+def diffToJSONFile(orig_data: bytes, patched_data: bytes, path: str) -> None:
+    differences = findDifferences(orig_data, patched_data)
+    serialized = [serializeDifference(d) for d in differences]
+    writeJSONToPath(path, serialized, indent=2)
