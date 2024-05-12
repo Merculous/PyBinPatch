@@ -16,3 +16,8 @@ def readJSONFromPath(path: str) -> Iterable:
 def writeJSONToPath(path: str, data: Iterable, *args, **kwargs) -> None:
     with open(path, 'w') as f:
         json.dump(data, f, *args, **kwargs)
+
+
+def writeDataToPath(path: str, data: bytes) -> None:
+    with open(path, 'wb') as f:
+        f.write(data)
