@@ -6,6 +6,7 @@ venv
 *.bin
 *.json
 *.plist
+*.txt
 
 .fseventsd
 *.ipsw
