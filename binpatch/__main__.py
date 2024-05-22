@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 
 from .diff import diffToJSONFile, readDifferencesFromJSONFile
 from .file import readDataFromPath, writeDataToPath
+from .find import findPatternsFromFuzzyJSON
 from .patch import applyPatchesFromDifferences
 
 
@@ -15,23 +16,32 @@ def main() -> None:
 
     parser.add_argument('-diff', action='store_true')
     parser.add_argument('-patch', action='store_true')
+    parser.add_argument('-find', action='store_true')
+
+    parser.add_argument('-fuzzy', action='store_true')
 
     args = parser.parse_args()
 
-    if not any((args.diff, args.patch, args.orig, args.new, args.json)):
+    if not any((args.diff, args.patch, args.find, args.orig, args.json)):
         return parser.print_help()
 
     origData = readDataFromPath(args.orig[0])
-    newData = None
 
-    if args.diff:
+    if all((args.diff, args.new, not args.patch)):
         newData = readDataFromPath(args.new[0])
         diffToJSONFile(origData, newData, args.json[0])
 
-    elif args.patch:
+    elif all((args.patch, args.new, not args.diff)):
         differences = readDifferencesFromJSONFile(args.json[0])
         newData = applyPatchesFromDifferences(differences, origData)
         writeDataToPath(args.new[0], newData)
+
+    elif all((args.find, not args.diff, not args.patch)):
+        if args.fuzzy:
+            findPatternsFromFuzzyJSON(args.json[0], origData)
+
+        else:
+            pass
 
     else:
         parser.print_help()

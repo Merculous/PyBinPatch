@@ -1,7 +1,6 @@
 
-from .errors import SizeMismatch
 from .diff import Difference
-from .utils import getDataAtOffset
+from .errors import SizeMismatch
 
 
 def applyPatchAtOffset(
@@ -15,7 +14,7 @@ def applyPatchAtOffset(
     if any((len(orig) != size, len(new) != size)):
         raise SizeMismatch(f'Patches are not of size {size}!')
 
-    origCheck = getDataAtOffset(offset, size, data)
+    origCheck = data[offset:offset+size]
 
     if origCheck != orig:
         raise Exception('Original data does not match!')

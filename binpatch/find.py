@@ -1,39 +1,68 @@
 
-import re
+from binascii import hexlify
 from difflib import SequenceMatcher
+from typing import Optional
 
-from .utils import getDataAtOffset
-
-
-def lookForPatternWithExactMatches(pattern: bytes, data: bytes) -> list[int]:
-    return [m.start() for m in re.finditer(pattern, data)]
+from .file import readFuzzyPatcherJSON
+from .utils import timer
 
 
-def getSimilarityBetweenBuffers(buff1: bytes, buff2: bytes) -> float:
-    return SequenceMatcher(a=buff1, b=buff2).quick_ratio()
+@timer
+def findPattern(
+    pattern: bytes,
+    data: bytes,
+    hashes: Optional[set] = None,
+    prevPattern: Optional[bytes] = None
+) -> tuple:
 
+    patternSize = len(pattern)
+    dataSize = len(data)
 
-def lookForPatternWithSimilarMatches(
-        pattern: bytes,
-        data: bytes,
-        threshold: float = .5
-) -> list:
+    if not isinstance(hashes, set):
+        hashes = set()
+
+    matcher = SequenceMatcher()
+    matcher.set_seq2(pattern)
+
     matches = []
 
-    # FIXME
-    # Need to make iterating better. Seems like matching atm is
-    # enough, not exact, but is pretty damn close to how msftguy's
-    # fuzzy_patcher works.
+    for i in range(0, dataSize, patternSize):
+        buff = data[i:i+patternSize]
+        buffHash = hash(buff)
 
-    for i in range(0, len(data), len(pattern)):
-        buffer = getDataAtOffset(i, len(pattern), data)
-        similarity = getSimilarityBetweenBuffers(pattern, buffer)
-
-        if any((similarity == 0, similarity < threshold)):
+        if all((buffHash in hashes, any((prevPattern is None, prevPattern == pattern)))):
             continue
 
-        matches.append((round(similarity, 2), hex(i)))
+        hashes.add(buffHash)
 
-    matches = sorted(matches, reverse=True)
+        matcher.set_seq1(buff)
+        ratio = matcher.ratio()
 
-    return matches
+        if ratio == 0:
+            continue
+
+        match = (round(ratio * 100, 2), i)
+        matches.append(match)
+
+    return matches, hashes, pattern
+
+
+@timer
+def findPatternsFromFuzzyJSON(jsonPath: str, data: bytes) -> None:
+    fuzzy = readFuzzyPatcherJSON(jsonPath)
+    hashTable = set()
+    prevPattern = None
+
+    for i, fuzz in enumerate(fuzzy, 1):
+        pattern = fuzz.pattern
+        matches, hashes, prevPattern = findPattern(pattern, data, hashTable, prevPattern)
+        hashTable.update(hashes)
+
+        matches = sorted(matches, reverse=True)[:10]
+
+        print(f'Hashes: {len(hashTable)}')
+        print(f'[{i}/{len(fuzzy)}]')
+        print(f'Pattern: {len(pattern)} {hexlify(pattern).decode()}')
+
+        for match, offset in matches:
+            print(f'{match}% 0x{offset:x}')
