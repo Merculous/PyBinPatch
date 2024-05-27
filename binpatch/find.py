@@ -26,7 +26,7 @@ def findPattern(
 
     matches = []
 
-    for i in range(0, dataSize, patternSize):
+    for i in range(dataSize - patternSize + 1):
         buff = data[i:i+patternSize]
         buffHash = hash(buff)
 
@@ -36,7 +36,7 @@ def findPattern(
         hashes.add(buffHash)
 
         matcher.set_seq1(buff)
-        ratio = matcher.ratio()
+        ratio = matcher.quick_ratio()
 
         if ratio == 0:
             continue
