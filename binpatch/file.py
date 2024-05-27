@@ -7,6 +7,7 @@ from typing import Any
 @dataclass
 class FuzzyDiff:
     offset: int
+    patchOffset: int
     size: int
     orig: bytes
     new: bytes
@@ -47,6 +48,7 @@ def readFuzzyPatcherJSON(path: str) -> list[FuzzyDiff]:
 
         diff = FuzzyDiff(
             offset,
+            start,
             len(new),
             orig,
             new,
