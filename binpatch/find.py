@@ -1,68 +1,73 @@
 
 from binascii import hexlify
 from difflib import SequenceMatcher
-from typing import Optional
 
 from .file import readFuzzyPatcherJSON
 from .utils import timer
 
 
 @timer
-def findPattern(
-    pattern: bytes,
-    data: bytes,
-    hashes: Optional[set] = None,
-    prevPattern: Optional[bytes] = None
-) -> tuple:
-
+def findPattern(pattern: bytes, data: bytes):
     patternSize = len(pattern)
     dataSize = len(data)
-
-    if not isinstance(hashes, set):
-        hashes = set()
+    readSize = dataSize - patternSize + 1
 
     matcher = SequenceMatcher()
     matcher.set_seq2(pattern)
 
-    matches = []
+    buffers = {}
 
-    for i in range(dataSize - patternSize + 1):
-        buff = data[i:i+patternSize]
-        buffHash = hash(buff)
+    for i in range(readSize):
+        buffer = data[i:i+patternSize]
+        bufferHash = hash(buffer)
 
-        if all((buffHash in hashes, any((prevPattern is None, prevPattern == pattern)))):
+        if bufferHash in buffers:
             continue
 
-        hashes.add(buffHash)
-
-        matcher.set_seq1(buff)
+        matcher.set_seq1(buffer)
         ratio = matcher.quick_ratio()
 
         if ratio == 0:
             continue
 
-        match = (round(ratio * 100, 2), i)
-        matches.append(match)
+        buffers[bufferHash] = {i: round(ratio * 100, 2)}
 
-    return matches, hashes, pattern
+    ratios = []
+
+    for buffHash in buffers:
+        for i, ratio in buffers[buffHash].items():
+            if ratio in ratios:
+                continue
+
+            ratios.append(ratio)
+
+    ratiosSorted = sorted(ratios, reverse=True)
+    bestRatio = ratiosSorted[0]
+    bestMatch = []
+
+    for buffHash in buffers:
+        if bestMatch:
+            break
+
+        for i, ratio in buffers[buffHash].items():
+            if ratio != bestRatio:
+                continue
+
+            bestMatch.extend((ratio, i))
+
+    return bestMatch
 
 
 @timer
 def findPatternsFromFuzzyJSON(jsonPath: str, data: bytes) -> None:
     fuzzy = readFuzzyPatcherJSON(jsonPath)
-    hashTable = set()
-    prevPattern = None
+    patterns = [f.pattern for f in fuzzy]
 
-    for i, fuzz in enumerate(fuzzy, 1):
-        pattern = fuzz.pattern
-        matches, hashes, prevPattern = findPattern(pattern, data, hashTable, prevPattern)
-        hashTable.update(hashes)
+    for patternCounter, pattern in enumerate(patterns, 1):
+        ratio, i = findPattern(pattern, data)
+        patternStr = hexlify(pattern).decode()
 
-        matches = sorted(matches, reverse=True)[:10]
-
-        print(f'Hashes: {len(hashTable)}')
-        print(f'[{i}/{len(fuzzy)}]')
-        print(f'Pattern: {len(pattern)} {hexlify(pattern).decode()}')
-
-        for match, offset in matches:
-            print(f'{match}% 0x{offset:x}')
+        print(f'[{patternCounter}/{len(patterns)}]')
+        print(f'Pattern: {patternStr}')
+        print(f'Size: {len(pattern)}')
+        print(f'{ratio}% 0x{i:x}')
