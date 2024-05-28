@@ -60,14 +60,21 @@ def findPattern(pattern: bytes, data: bytes):
 
 @timer
 def findPatternsFromFuzzyJSON(jsonPath: str, data: bytes) -> None:
-    fuzzy = readFuzzyPatcherJSON(jsonPath)
-    patterns = [f.pattern for f in fuzzy]
+    patterns = readFuzzyPatcherJSON(jsonPath)
+    nPatterns = len(patterns)
+    exactMatches = 0
 
     for patternCounter, pattern in enumerate(patterns, 1):
-        ratio, i = findPattern(pattern, data)
-        patternStr = hexlify(pattern).decode()
+        ratio, i = findPattern(pattern.pattern, data)
+        patternStr = hexlify(pattern.pattern).decode()
 
-        print(f'[{patternCounter}/{len(patterns)}]')
+        if ratio == 100:
+            exactMatches += 1
+
+        print(f'[{patternCounter}/{nPatterns}]')
         print(f'Pattern: {patternStr}')
-        print(f'Size: {len(pattern)}')
-        print(f'{ratio}% 0x{i:x}')
+        print(f'Size: {len(pattern.pattern)}')
+        print(f'Match: {ratio}%')
+        print(f'Offset: 0x{i:x}')
+
+    print(f'Exact matches: {exactMatches}/{nPatterns}')
