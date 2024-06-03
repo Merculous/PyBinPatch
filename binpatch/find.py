@@ -2,12 +2,12 @@
 from binascii import hexlify
 from difflib import SequenceMatcher
 
-from .file import readFuzzyPatcherJSON
+from .diff import Difference
 from .utils import timer
 
 
 @timer
-def findPattern(pattern: bytes, data: bytes):
+def findPattern(pattern: bytes, data: bytes) -> list:
     patternSize = len(pattern)
     dataSize = len(data)
     readSize = dataSize - patternSize + 1
@@ -59,21 +59,20 @@ def findPattern(pattern: bytes, data: bytes):
 
 
 @timer
-def findPatternsFromFuzzyJSON(jsonPath: str, data: bytes) -> None:
-    patterns = readFuzzyPatcherJSON(jsonPath)
-    nPatterns = len(patterns)
+def findPatternsFromDifferences(differences: list[Difference], data: bytes) -> None:
+    nPatterns = len(differences)
     exactMatches = 0
 
-    for patternCounter, pattern in enumerate(patterns, 1):
-        ratio, i = findPattern(pattern.pattern, data)
-        patternStr = hexlify(pattern.pattern).decode()
+    for patternCounter, difference in enumerate(differences, 1):
+        ratio, i = findPattern(difference.pattern, data)
+        patternStr = hexlify(difference.pattern).decode()
 
         if ratio == 100:
             exactMatches += 1
 
         print(f'[{patternCounter}/{nPatterns}]')
         print(f'Pattern: {patternStr}')
-        print(f'Size: {len(pattern.pattern)}')
+        print(f'Size: {len(difference.pattern)}')
         print(f'Match: {ratio}%')
         print(f'Offset: 0x{i:x}')
 

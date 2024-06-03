@@ -1,6 +1,6 @@
 
-from .diff import Difference
 from .errors import SizeMismatch
+from .diff import Difference
 
 
 def applyPatchAtOffset(

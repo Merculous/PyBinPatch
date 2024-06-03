@@ -9,14 +9,24 @@ from .file import writeJSONToPath, readJSONFromPath
 @dataclass
 class Difference:
     offset: int
+    patchOffset: int
     size: int
     orig: bytes
     new: bytes
+    patternSize: int
+    pattern: bytes
 
 
-def findDifferences(orig_data: bytes, patched_data: bytes) -> list[Difference]:
-    orig_size = len(orig_data)
-    patched_size = len(patched_data)
+def initPattern(data: bytes, offset: int, buffSize: int, expandSize: int = 8) -> tuple:
+    pattern = data[offset-buffSize-expandSize:offset+buffSize+expandSize]
+    patternSize = len(pattern)
+    patternOffset = patternSize - expandSize - buffSize
+    return pattern, patternSize, patternOffset
+
+
+def findDifferences(origData: bytes, patchedData: bytes) -> list[Difference]:
+    orig_size = len(origData)
+    patched_size = len(patchedData)
 
     if orig_size != patched_size:
         raise SizeMismatch(f'Original: {orig_size}, Patched: {patched_size}')
@@ -28,7 +38,7 @@ def findDifferences(orig_data: bytes, patched_data: bytes) -> list[Difference]:
 
     differences = []
 
-    for i, (v1, v2) in enumerate(zip(orig_data, patched_data)):
+    for i, (v1, v2) in enumerate(zip(origData, patchedData)):
         if v1 == v2:
             continue
 
@@ -54,7 +64,18 @@ def findDifferences(orig_data: bytes, patched_data: bytes) -> list[Difference]:
         else:
             buffSize = len(origBuff)
 
-            diff = Difference(start, buffSize, origBuff, patchedBuff)
+            pattern, patternSize, patternOffset = initPattern(origData, start, buffSize)
+
+            diff = Difference(
+                start,
+                patternOffset,
+                buffSize,
+                origBuff,
+                patchedBuff,
+                patternSize,
+                pattern
+            )
+
             differences.append(diff)
 
             start = i
@@ -65,7 +86,19 @@ def findDifferences(orig_data: bytes, patched_data: bytes) -> list[Difference]:
     if all((origBuff, patchedBuff, start <= stop)):
         # Last
         buffSize = len(origBuff)
-        diff = Difference(start, buffSize, origBuff, patchedBuff)
+
+        pattern, patternSize, patternOffset = initPattern(origData, start, buffSize)
+
+        diff = Difference(
+            start,
+            patternOffset,
+            buffSize,
+            origBuff,
+            patchedBuff,
+            patternSize,
+            pattern
+        )
+
         differences.append(diff)
 
     return differences
@@ -83,25 +116,24 @@ def serializeDifference(difference: Difference) -> dict:
     diff = asdict(difference)
     diff['orig'] = hexlify(diff['orig']).decode('utf-8')
     diff['new'] = hexlify(diff['new']).decode('utf-8')
+    diff['pattern'] = hexlify(diff['pattern']).decode('utf-8')
     return diff
 
 
-def diffToJSONFile(orig_data: bytes, patched_data: bytes, path: str) -> None:
-    differences = findDifferences(orig_data, patched_data)
+def unserializeDifference(difference: dict) -> Difference:
+    difference['orig'] = b''.fromhex(difference['orig'])
+    difference['new'] = b''.fromhex(difference['new'])
+    difference['pattern'] = b''.fromhex(difference['pattern'])
+    return Difference(*difference.values())
+
+
+def diffToJSONFile(origData: bytes, patchedData: bytes, path: str) -> None:
+    differences = findDifferences(origData, patchedData)
     serialized = [serializeDifference(d) for d in differences]
     writeJSONToPath(path, serialized, indent=2)
 
 
 def readDifferencesFromJSONFile(path: str) -> list[Difference]:
-    data = readJSONFromPath(path)
-
-    differences = []
-
-    for diff in data:
-        diff['orig'] = bytes.fromhex(diff['orig'])
-        diff['new'] = bytes.fromhex(diff['new'])
-
-        difference = Difference(*diff.values())
-        differences.append(difference)
-
+    jsonData = readJSONFromPath(path)
+    differences = [unserializeDifference(d) for d in jsonData]
     return differences
