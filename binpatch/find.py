@@ -1,79 +1,70 @@
 
-from binascii import hexlify
 from difflib import SequenceMatcher
 
-from .diff import Difference
-from .utils import timer
+from .types import Buffer, ReadOnlyBuffer, Matches, Similarity, SimilarMatches
+from .utils import getBufferAtIndex
 
 
-@timer
-def findPattern(pattern: bytes, data: bytes) -> list:
-    patternSize = len(pattern)
-    dataSize = len(data)
-    readSize = dataSize - patternSize + 1
+class Finder:
+    def __init__(self, data: Buffer, pattern: ReadOnlyBuffer) -> None:
+        self._data = data
+        self._dataSize = len(self._data)
+        self._pattern = pattern
+        self._patternSize = len(self._pattern)
+        self._searchSize = self._dataSize - self._patternSize + 1
+        self.table = self.makeTable()
 
-    matcher = SequenceMatcher()
-    matcher.set_seq2(pattern)
+    def makeTable(self) -> dict:
+        table = {}
 
-    buffers = {}
+        for i in range(0, self._searchSize, self._patternSize):
+            buffer = getBufferAtIndex(self._data, i, self._patternSize)
+            bufferHash = hash(buffer)
 
-    for i in range(readSize):
-        buffer = data[i:i+patternSize]
-        bufferHash = hash(buffer)
+            if bufferHash not in table:
+                table[bufferHash] = {
+                    'data': buffer,
+                    'matches': []
+                }
 
-        if bufferHash in buffers:
-            continue
+            table[bufferHash]['matches'].append(i)
 
-        matcher.set_seq1(buffer)
-        ratio = matcher.quick_ratio()
+        return table
 
-        if ratio == 0:
-            continue
+    def findExactMatch(self) -> Matches | None:
+        matches = None
 
-        buffers[bufferHash] = {i: round(ratio * 100, 2)}
+        for bufferHash in self.table:
+            buffer = self.table[bufferHash]['data']
 
-    ratios = []
-
-    for buffHash in buffers:
-        for i, ratio in buffers[buffHash].items():
-            if ratio in ratios:
+            if buffer != self._pattern:
                 continue
 
-            ratios.append(ratio)
-
-    ratiosSorted = sorted(ratios, reverse=True)
-    bestRatio = ratiosSorted[0]
-    bestMatch = []
-
-    for buffHash in buffers:
-        if bestMatch:
+            matches = self.table[bufferHash]['matches']
             break
 
-        for i, ratio in buffers[buffHash].items():
-            if ratio != bestRatio:
+        return matches
+
+    def findSimilarMatch(self, minMatch: Similarity = .5) -> SimilarMatches:
+        if not isinstance(minMatch, Similarity):
+            raise TypeError('minMatch must be of type: Similarity')
+
+        matches = []
+        matcher = SequenceMatcher()
+        matcher.set_seq2(self._pattern)
+
+        for bufferHash in self.table:
+            buffer = self.table[bufferHash]['data']
+            matcher.set_seq1(buffer)
+            ratio = matcher.ratio()
+
+            if ratio < minMatch:
                 continue
 
-            bestMatch.extend((ratio, i))
+            match = (
+                self.table[bufferHash]['matches'],
+                ratio
+            )
+            matches.append(match)
 
-    return bestMatch
-
-
-@timer
-def findPatternsFromDifferences(differences: list[Difference], data: bytes) -> None:
-    nPatterns = len(differences)
-    exactMatches = 0
-
-    for patternCounter, difference in enumerate(differences, 1):
-        ratio, i = findPattern(difference.pattern, data)
-        patternStr = hexlify(difference.pattern).decode()
-
-        if ratio == 100:
-            exactMatches += 1
-
-        print(f'[{patternCounter}/{nPatterns}]')
-        print(f'Pattern: {patternStr}')
-        print(f'Size: {len(difference.pattern)}')
-        print(f'Match: {ratio}%')
-        print(f'Offset: 0x{i:x}')
-
-    print(f'Exact matches: {exactMatches}/{nPatterns}')
+        return matches

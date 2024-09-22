@@ -1,36 +1,21 @@
 
-from .errors import SizeMismatch
-from .diff import Difference
+from binpatch.errors import NotEqualError
+from .types import ReadOnlyBuffer, Differences
+from .utils import getBufferAtIndex, replaceBufferAtIndex
 
 
-def applyPatchAtOffset(
-        offset: int,
-        size: int,
-        orig: bytes,
-        new: bytes,
-        data: bytearray
-) -> None:
+def patchFromDifferences(data: ReadOnlyBuffer, differences: Differences) -> ReadOnlyBuffer:
+    if not isinstance(data, ReadOnlyBuffer):
+        raise TypeError('Data must be of type: ReadOnlyBuffer')
 
-    if any((len(orig) != size, len(new) != size)):
-        raise SizeMismatch(f'Patches are not of size {size}!')
+    patched = bytearray(data)
 
-    origCheck = data[offset:offset+size]
+    for difference in differences:
+        buffer = getBufferAtIndex(patched, difference.index, difference.size)
 
-    if origCheck != orig:
-        raise Exception('Original data does not match!')
+        if buffer != difference.a:
+            raise NotEqualError('A attribute not the same!')
 
-    data[offset:offset+size] = new
+        patched = replaceBufferAtIndex(patched, difference.b, difference.index, difference.size)
 
-
-def applyPatchesFromDifferences(diffs: list[Difference], data: bytes) -> bytes:
-    buffer = bytearray(data)
-
-    for diff in diffs:
-        sliceCheck = data[diff.offset:diff.offset+diff.size]
-
-        if diff.orig != sliceCheck:
-            raise Exception(f'0x{diff.offset:x} orig data does not match!')
-
-        applyPatchAtOffset(diff.offset, diff.size, diff.orig, diff.new, buffer)
-
-    return bytes(buffer)
+    return bytes(patched)

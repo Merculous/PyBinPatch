@@ -1,139 +1,89 @@
 
 from binascii import hexlify
-from dataclasses import dataclass, asdict
 
-from .errors import SizeMismatch
-from .file import writeJSONToPath, readJSONFromPath
-
-
-@dataclass
-class Difference:
-    offset: int
-    patchOffset: int
-    size: int
-    orig: bytes
-    new: bytes
-    patternSize: int
-    pattern: bytes
+from .errors import NotEqualError
+from .io import writeDataToJSONFile, readDataFromJSONFile
+from .types import Difference, FilesystemPath, ReadOnlyBuffer, Differences
 
 
-def initPattern(data: bytes, offset: int, buffSize: int, expandSize: int = 8) -> tuple:
-    pattern = data[offset-buffSize-expandSize:offset+buffSize+expandSize]
-    patternSize = len(pattern)
-    patternOffset = patternSize - expandSize - buffSize
-    return pattern, patternSize, patternOffset
+def diff(a: ReadOnlyBuffer, b: ReadOnlyBuffer) -> Differences:
+    if not isinstance(a, ReadOnlyBuffer):
+        raise TypeError('A must be of type: ReadOnlyBuffer')
 
+    if not isinstance(b, ReadOnlyBuffer):
+        raise TypeError('B must be of type: ReadOnlyBuffer')
 
-def findDifferences(origData: bytes, patchedData: bytes) -> list[Difference]:
-    orig_size = len(origData)
-    patched_size = len(patchedData)
+    aSize = len(a)
+    bSize = len(b)
 
-    if orig_size != patched_size:
-        raise SizeMismatch(f'Original: {orig_size}, Patched: {patched_size}')
+    if aSize != bSize:
+        raise NotEqualError(f'Size mismatch: a: {aSize}, b: {bSize}')
 
-    start = 0
-    stop = 0
-    origBuff = b''
-    patchedBuff = b''
+    aBuffer = b''
+    bBuffer = b''
+
+    lastPos = 0
 
     differences = []
 
-    for i, (v1, v2) in enumerate(zip(origData, patchedData)):
-        if v1 == v2:
-            continue
+    for i, (aValue, bValue) in enumerate(zip(a, b)):
+        lastPos = i
 
-        v1 = v1.to_bytes(1)
-        v2 = v2.to_bytes(1)
+        if aValue == bValue:
+            if aBuffer and bBuffer:
+                if len(aBuffer) != len(bBuffer):
+                    raise NotEqualError('A and B buffer size mismatch!')
 
-        if all((start == 0, stop == 0)):
-            # First
-            start += i
-            stop += i
+                difference = Difference(aBuffer, bBuffer, len(aBuffer), lastPos - len(aBuffer))
+                differences.append(difference)
 
-            origBuff += v1
-            patchedBuff += v2
-            continue
+                aBuffer = b''
+                bBuffer = b''
 
-        elif all((start <= stop, stop + 1 == i)):
-            stop += 1
+                continue
+            else:
+                continue
 
-            origBuff += v1
-            patchedBuff += v2
-            continue
-
-        else:
-            buffSize = len(origBuff)
-
-            pattern, patternSize, patternOffset = initPattern(origData, start, buffSize)
-
-            diff = Difference(
-                start,
-                patternOffset,
-                buffSize,
-                origBuff,
-                patchedBuff,
-                patternSize,
-                pattern
-            )
-
-            differences.append(diff)
-
-            start = i
-            stop = i
-            origBuff = v1
-            patchedBuff = v2
-
-    if all((origBuff, patchedBuff, start <= stop)):
-        # Last
-        buffSize = len(origBuff)
-
-        pattern, patternSize, patternOffset = initPattern(origData, start, buffSize)
-
-        diff = Difference(
-            start,
-            patternOffset,
-            buffSize,
-            origBuff,
-            patchedBuff,
-            patternSize,
-            pattern
-        )
-
-        differences.append(diff)
+        aBuffer += aValue.to_bytes(1)
+        bBuffer += bValue.to_bytes(1)
 
     return differences
 
 
-def printDifferences(differences: list[Difference]) -> None:
-    for diff in differences:
-        print(f'Offset: {diff.offset:x}')
-        print(f'Size: {diff.size:x}')
-        print(f'Original: {hexlify(diff.orig).decode("utf-8")}')
-        print(f'Patched: {hexlify(diff.new).decode("utf-8")}')
+def diffToJSONFile(a: ReadOnlyBuffer, b: ReadOnlyBuffer, path: FilesystemPath) -> None:
+    if not isinstance(path, FilesystemPath):
+        raise TypeError('Path must be of type: FilesystemPath')
+
+    differences = diff(a, b)
+    differencesJSON = {}
+
+    for difference in differences:
+        differencesJSON[hex(difference.index)] = {
+            'a': hexlify(difference.a).decode(),
+            'b': hexlify(difference.b).decode(),
+            'size': hex(difference.size)
+        }
+
+    writeDataToJSONFile(path, differencesJSON)
 
 
-def serializeDifference(difference: Difference) -> dict:
-    diff = asdict(difference)
-    diff['orig'] = hexlify(diff['orig']).decode('utf-8')
-    diff['new'] = hexlify(diff['new']).decode('utf-8')
-    diff['pattern'] = hexlify(diff['pattern']).decode('utf-8')
-    return diff
+def readDifferencesJSONFile(path: FilesystemPath) -> Differences:
+    if not isinstance(path, FilesystemPath):
+        raise TypeError('Path must be of type: FilesystemPath')
 
+    differencesJSON = readDataFromJSONFile(path)
+    differences = []
 
-def unserializeDifference(difference: dict) -> Difference:
-    difference['orig'] = b''.fromhex(difference['orig'])
-    difference['new'] = b''.fromhex(difference['new'])
-    difference['pattern'] = b''.fromhex(difference['pattern'])
-    return Difference(*difference.values())
+    for offset in differencesJSON:
+        info = differencesJSON[offset]
 
+        difference = Difference(
+            b''.fromhex(info['a']),
+            b''.fromhex(info['b']),
+            int(info['size'], 16),
+            int(offset, 16)
+        )
 
-def diffToJSONFile(origData: bytes, patchedData: bytes, path: str) -> None:
-    differences = findDifferences(origData, patchedData)
-    serialized = [serializeDifference(d) for d in differences]
-    writeJSONToPath(path, serialized, indent=2)
+        differences.append(difference)
 
-
-def readDifferencesFromJSONFile(path: str) -> list[Difference]:
-    jsonData = readJSONFromPath(path)
-    differences = [unserializeDifference(d) for d in jsonData]
     return differences
