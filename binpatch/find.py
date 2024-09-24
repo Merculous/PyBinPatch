@@ -1,7 +1,7 @@
 
 from difflib import SequenceMatcher
 
-from .types import Buffer, ReadOnlyBuffer, Matches, Similarity, SimilarMatches
+from .types import Buffer, ReadOnlyBuffer, Matches, Percentage, SimilarMatches
 from .utils import getBufferAtIndex
 
 
@@ -45,9 +45,9 @@ class Finder:
 
         return matches
 
-    def findSimilarMatch(self, minMatch: Similarity = .5) -> SimilarMatches:
-        if not isinstance(minMatch, Similarity):
-            raise TypeError('minMatch must be of type: Similarity')
+    def findSimilarMatch(self, minMatch: Percentage = .5) -> SimilarMatches:
+        if not isinstance(minMatch, Percentage):
+            raise TypeError('minMatch must be of type: Percentage')
 
         matches = []
         matcher = SequenceMatcher()

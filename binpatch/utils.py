@@ -1,11 +1,11 @@
 
 from .errors import EmptyError, ZeroError, NotEqualError
-from .types import Buffer, WritableBuffer, Index, Size
+from .types import Index, Size, ReadOnlyBuffer, WritableBuffer
 
 
-def getBufferAtIndex(data: Buffer, index: Index, length: Size) -> Buffer:
-    if not isinstance(data, Buffer):
-        raise TypeError('Data must be of type: Buffer')
+def getBufferAtIndex(data: ReadOnlyBuffer, index: Index, length: Size) -> ReadOnlyBuffer:
+    if not isinstance(data, ReadOnlyBuffer):
+        raise TypeError('Data must be of type: ReadOnlyBuffer')
 
     if not data:
         raise EmptyError('Data is empty!')
@@ -35,9 +35,15 @@ def getBufferAtIndex(data: Buffer, index: Index, length: Size) -> Buffer:
     return buffer
 
 
-def replaceBufferAtIndex(data: WritableBuffer, pattern: Buffer, index: Index, length: Size) -> WritableBuffer:
+def replaceBufferAtIndex(data: WritableBuffer, pattern: WritableBuffer, index: Index, length: Size) -> WritableBuffer:
     if not isinstance(data, WritableBuffer):
         raise TypeError('Data must be of type: WritableBuffer')
+
+    if not isinstance(pattern, WritableBuffer):
+        raise TypeError('Pattern must be of type: WritableBuffer')
+
+    if len(pattern) != length:
+        raise NotEqualError('Pattern must be the same size as length!')
 
     buffer = getBufferAtIndex(data, index, length)
 
