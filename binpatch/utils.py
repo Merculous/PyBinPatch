@@ -42,15 +42,15 @@ def replaceBufferAtIndex(data: Buffer, pattern: Buffer, index: Index, length: Si
     if not isinstance(pattern, Buffer):
         raise TypeError('Pattern must be of type: Buffer')
 
-    if type(data) is str and type(pattern) is not str:
+    if isinstance(data, str) and not isinstance(pattern, str):
         raise TypeError('Data IS str but pattern IS NOT!')
 
-    if type(data) is not str and type(pattern) is str:
+    if not isinstance(data, str) and isinstance(pattern, str):
         raise TypeError('Data IS NOT str but pattern IS!')
 
     isStr = False
 
-    if type(data) is str and type(pattern) is str:
+    if isinstance(data, str) and isinstance(pattern, str):
         isStr = True
 
     if len(pattern) != length:

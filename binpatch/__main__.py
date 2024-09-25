@@ -27,7 +27,7 @@ def main() -> None:
         diffToJSONFile(aData, bData, jsonPath)
 
     elif args.patch:
-        aData = readBytesFromPath(args.a[0])
+        aData = bytearray(readBytesFromPath(args.a[0]))
         differences = readDifferencesJSONFile(args.json[0])
         patched = patchFromDifferences(aData, differences)
 
