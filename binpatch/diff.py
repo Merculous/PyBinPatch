@@ -19,8 +19,8 @@ def diff(a: ReadOnlyBuffer, b: ReadOnlyBuffer) -> Differences:
     if aSize != bSize:
         raise NotEqualError(f'Size mismatch: a: {aSize}, b: {bSize}')
 
-    aBuffer = b''
-    bBuffer = b''
+    aBuffer = bytearray()
+    bBuffer = bytearray()
 
     lastPos = 0
 
@@ -34,18 +34,18 @@ def diff(a: ReadOnlyBuffer, b: ReadOnlyBuffer) -> Differences:
                 if len(aBuffer) != len(bBuffer):
                     raise NotEqualError('A and B buffer size mismatch!')
 
-                difference = Difference(aBuffer, bBuffer, len(aBuffer), lastPos - len(aBuffer))
+                difference = Difference(bytes(aBuffer), bytes(bBuffer), len(aBuffer), lastPos - len(aBuffer))
                 differences.append(difference)
 
-                aBuffer = b''
-                bBuffer = b''
+                aBuffer.clear()
+                bBuffer.clear()
 
                 continue
             else:
                 continue
 
-        aBuffer += aValue.to_bytes(1)
-        bBuffer += bValue.to_bytes(1)
+        aBuffer.append(aValue)
+        bBuffer.append(bValue)
 
     return differences
 
