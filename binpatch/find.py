@@ -19,15 +19,7 @@ class Finder:
 
         for i in range(0, self._searchSize, self._patternSize):
             buffer = getBufferAtIndex(self._data, i, self._patternSize)
-            bufferHash = hash(buffer)
-
-            if bufferHash not in table:
-                table[bufferHash] = {
-                    'data': buffer,
-                    'matches': []
-                }
-
-            table[bufferHash]['matches'].append(i)
+            table.setdefault(hash(buffer), {'data': buffer, 'matches': []})['matches'].append(i)
 
         return table
 

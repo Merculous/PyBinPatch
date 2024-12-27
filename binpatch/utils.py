@@ -38,6 +38,12 @@ def getBufferAtIndex(data: Buffer, index: Index, length: Size) -> Buffer:
 def replaceBufferAtIndex(data: Buffer, pattern: Buffer, index: Index, length: Size) -> Buffer:
     if not isinstance(data, Buffer):
         raise TypeError('Data must be of type: Buffer')
+    
+    if isinstance(data, bytes):
+        data = bytearray(data)
+
+    elif isinstance(data, str):
+        data = bytearray.fromhex(data)
 
     if not isinstance(pattern, Buffer):
         raise TypeError('Pattern must be of type: Buffer')
@@ -73,5 +79,8 @@ def replaceBufferAtIndex(data: Buffer, pattern: Buffer, index: Index, length: Si
 
     if patchedBuffer != pattern:
         raise ValueError('Failed to replace buffer!')
+
+    if not isinstance(data, bytes):
+        data = bytes(data)
 
     return data
