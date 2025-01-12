@@ -1,5 +1,5 @@
 
-from .errors import EmptyError, ZeroError, NotEqualError
+from .errors import EmptyError, NotEqualError, ZeroError
 from .types import Buffer, Index, Size
 
 
@@ -21,6 +21,9 @@ def getBufferAtIndex(data: Buffer, index: Index, length: Size) -> Buffer:
 
     if length == 0:
         raise ZeroError('Length must not be 0!')
+    
+    if index + length > len(data):
+        raise IndexError('Index overflow!')
 
     buffer = data[index:index+length]
 
