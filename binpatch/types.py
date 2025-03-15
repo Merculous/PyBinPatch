@@ -1,25 +1,24 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
 
+Buffer = bytes | bytearray | str
 ReadOnlyBuffer = bytes | str
 WritableBuffer = bytearray
-Buffer = bytes | bytearray | str
 Index = int
 Size = int
 FilesystemPath = Path
-Matches = List[Index]
+Matches = list[Index]
 
 
 @dataclass
 class Difference:
-    a: ReadOnlyBuffer
-    b: ReadOnlyBuffer
+    a: Buffer
+    b: Buffer
     size: Size
     index: Index
 
 
-Differences = List[Difference]
+Differences = list[Difference]
 Percentage = float
-SimilarMatches = List[Tuple[Matches, Percentage]]
+SimilarMatches = list[tuple[Matches, Percentage]]
