@@ -1,7 +1,7 @@
 
 def getBufferAtIndex(data: bytes, index: int, length: int) -> bytes:
     if not isinstance(data, bytes):
-        raise TypeError(f'Data must be of type: {type(bytes)}')
+        raise TypeError(f'Data must be of type: {bytes}')
 
     if not data:
         raise ValueError('Data is empty!')
@@ -38,10 +38,10 @@ def getBufferAtIndex(data: bytes, index: int, length: int) -> bytes:
 
 def replaceBufferAtIndex(data: bytearray, pattern: bytes, index: int, length: int) -> bytearray:
     if not isinstance(data, bytearray):
-        raise TypeError(f'Data must be of type: {type(bytearray)}')
+        raise TypeError(f'Data must be of type: {bytearray}')
 
     if not isinstance(pattern, bytes):
-        raise TypeError(f'Pattern must be of type: {type(bytes)}')
+        raise TypeError(f'Pattern must be of type: {bytes}')
 
     if not isinstance(index, int):
         raise TypeError('Index must be an int!')

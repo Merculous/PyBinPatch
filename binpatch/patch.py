@@ -5,7 +5,7 @@ from .utils import getBufferAtIndex, replaceBufferAtIndex
 
 def patchFromDifferences(data: bytearray, differences: Differences) -> bytearray:
     if not isinstance(data, bytearray):
-        raise TypeError(f'Data must be of type: {type(bytearray())}')
+        raise TypeError(f'Data must be of type: {bytearray}')
 
     for difference in differences:
         buffer = getBufferAtIndex(data, difference.offset, difference.size)

@@ -10,10 +10,10 @@ from .types import Difference, Differences
 
 def diff(a: bytes, b: bytes) -> Differences:
     if not isinstance(a, bytes):
-        raise TypeError(f'A must be of type: {type(bytes)}')
+        raise TypeError(f'A must be of type: {bytes}')
 
     if not isinstance(b, bytes):
-        raise TypeError(f'B must be of type: {type(bytes)}')
+        raise TypeError(f'B must be of type: {bytes}')
 
     aSize = len(a)
     bSize = len(b)
@@ -59,7 +59,7 @@ def diff(a: bytes, b: bytes) -> Differences:
 
 def diffToJSONFile(a: bytes, b: bytes, path: Path) -> None:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     differences = diff(a, b)
     differencesJSON = {}
@@ -76,7 +76,7 @@ def diffToJSONFile(a: bytes, b: bytes, path: Path) -> None:
 
 def readDifferencesJSONFile(path: Path) -> Differences:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     differencesJSON = readDataFromJSONFile(path)
     differences = []

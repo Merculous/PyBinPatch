@@ -6,7 +6,7 @@ from typing import Any
 
 def readBytesFromPath(path: Path) -> bytes:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     if not path.is_file():
         raise TypeError('Path must be a file!')
@@ -17,7 +17,7 @@ def readBytesFromPath(path: Path) -> bytes:
 
 def writeBytesToPath(path: Path, data: bytes) -> int:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     if path.is_file():
         raise FileExistsError('Path exists! Not overwriting!')
@@ -28,7 +28,7 @@ def writeBytesToPath(path: Path, data: bytes) -> int:
 
 def readDataFromJSONFile(path: Path) -> Any:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     if not path.is_file():
         raise TypeError('Path must be a file!')
@@ -39,7 +39,7 @@ def readDataFromJSONFile(path: Path) -> Any:
 
 def writeDataToJSONFile(path: Path, data: Any, indent: int = 2) -> None:
     if not isinstance(path, Path):
-        raise TypeError(f'Path must be of type: {type(Path)}')
+        raise TypeError(f'Path must be of type: {Path}')
 
     if path.is_file():
         raise FileExistsError('Path exists! Not overwriting!')
