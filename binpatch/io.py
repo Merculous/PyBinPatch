@@ -1,13 +1,12 @@
 
 import json
+from pathlib import Path
 from typing import Any
 
-from .types import ReadOnlyBuffer, FilesystemPath, Size, Buffer
 
-
-def readBytesFromPath(path: FilesystemPath) -> ReadOnlyBuffer:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def readBytesFromPath(path: Path) -> bytes:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     if not path.is_file():
         raise TypeError('Path must be a file!')
@@ -16,9 +15,9 @@ def readBytesFromPath(path: FilesystemPath) -> ReadOnlyBuffer:
         return f.read()
 
 
-def writeBytesToPath(path: FilesystemPath, data: Buffer) -> Size:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def writeBytesToPath(path: Path, data: bytes) -> int:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     if path.is_file():
         raise FileExistsError('Path exists! Not overwriting!')
@@ -27,9 +26,9 @@ def writeBytesToPath(path: FilesystemPath, data: Buffer) -> Size:
         return f.write(data)
 
 
-def readDataFromJSONFile(path: FilesystemPath) -> Any:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def readDataFromJSONFile(path: Path) -> Any:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     if not path.is_file():
         raise TypeError('Path must be a file!')
@@ -38,9 +37,9 @@ def readDataFromJSONFile(path: FilesystemPath) -> Any:
         return json.load(f)
 
 
-def writeDataToJSONFile(path: FilesystemPath, data: Any, indent: Size = 2) -> None:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def writeDataToJSONFile(path: Path, data: Any, indent: int = 2) -> None:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     if path.is_file():
         raise FileExistsError('Path exists! Not overwriting!')

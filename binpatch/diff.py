@@ -1,64 +1,71 @@
 
 from binascii import hexlify
+from pathlib import Path
 
-from .errors import NotEqualError
-from .io import writeDataToJSONFile, readDataFromJSONFile
-from .types import Difference, FilesystemPath, ReadOnlyBuffer, Differences
+from binpatch.utils import getBufferAtIndex
+
+from .io import readDataFromJSONFile, writeDataToJSONFile
+from .types import Difference, Differences
 
 
-def diff(a: ReadOnlyBuffer, b: ReadOnlyBuffer) -> Differences:
-    if not isinstance(a, ReadOnlyBuffer):
-        raise TypeError('A must be of type: ReadOnlyBuffer')
+def diff(a: bytes, b: bytes) -> Differences:
+    if not isinstance(a, bytes):
+        raise TypeError(f'A must be of type: {type(bytes)}')
 
-    if not isinstance(b, ReadOnlyBuffer):
-        raise TypeError('B must be of type: ReadOnlyBuffer')
+    if not isinstance(b, bytes):
+        raise TypeError(f'B must be of type: {type(bytes)}')
 
     aSize = len(a)
     bSize = len(b)
 
     if aSize != bSize:
-        raise NotEqualError(f'Size mismatch: a: {aSize}, b: {bSize}')
+        raise ValueError(f'Size mismatch: a: {aSize}, b: {bSize}')
 
-    aBuffer = bytearray()
-    bBuffer = bytearray()
-
-    lastPos = 0
+    differenceStart = -1
+    differenceSize = 0
 
     differences = []
 
     for i, (aValue, bValue) in enumerate(zip(a, b)):
-        lastPos = i
-
         if aValue == bValue:
-            if aBuffer and bBuffer:
-                if len(aBuffer) != len(bBuffer):
-                    raise NotEqualError('A and B buffer size mismatch!')
+            if differenceStart >= 0 and differenceSize >= 1:
+                difference = Difference(
+                    getBufferAtIndex(a, differenceStart, differenceSize),
+                    getBufferAtIndex(b, differenceStart, differenceSize),
+                    differenceStart,
+                    differenceSize
+                )
 
-                difference = Difference(bytes(aBuffer), bytes(bBuffer), len(aBuffer), lastPos - len(aBuffer))
                 differences.append(difference)
 
-                aBuffer.clear()
-                bBuffer.clear()
+                differenceStart = -1
+                differenceSize = 0
 
                 continue
             else:
                 continue
 
-        aBuffer.append(aValue)
-        bBuffer.append(bValue)
+        if differenceStart == -1:
+            differenceStart = i
+            differenceSize += 1
+            continue
+
+        if differenceStart + differenceSize == i:
+            differenceSize += 1
+            continue
 
     return differences
 
 
-def diffToJSONFile(a: ReadOnlyBuffer, b: ReadOnlyBuffer, path: FilesystemPath) -> None:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def diffToJSONFile(a: bytes, b: bytes, path: Path) -> None:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     differences = diff(a, b)
     differencesJSON = {}
 
     for difference in differences:
-        differencesJSON[hex(difference.index)] = {
+        differencesJSON[hex(difference.offset)] = {
             'a': hexlify(difference.a).decode(),
             'b': hexlify(difference.b).decode(),
             'size': hex(difference.size)
@@ -67,9 +74,9 @@ def diffToJSONFile(a: ReadOnlyBuffer, b: ReadOnlyBuffer, path: FilesystemPath) -
     writeDataToJSONFile(path, differencesJSON)
 
 
-def readDifferencesJSONFile(path: FilesystemPath) -> Differences:
-    if not isinstance(path, FilesystemPath):
-        raise TypeError('Path must be of type: FilesystemPath')
+def readDifferencesJSONFile(path: Path) -> Differences:
+    if not isinstance(path, Path):
+        raise TypeError(f'Path must be of type: {type(Path)}')
 
     differencesJSON = readDataFromJSONFile(path)
     differences = []

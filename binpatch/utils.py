@@ -1,89 +1,71 @@
 
-from .errors import EmptyError, NotEqualError, ZeroError
-from .types import Buffer, Index, Size
-
-
-def getBufferAtIndex(data: Buffer, index: Index, length: Size) -> Buffer:
-    if not isinstance(data, Buffer):
-        raise TypeError('Data must be of type: Buffer')
+def getBufferAtIndex(data: bytes, index: int, length: int) -> bytes:
+    if not isinstance(data, bytes):
+        raise TypeError(f'Data must be of type: {type(bytes)}')
 
     if not data:
-        raise EmptyError('Data is empty!')
+        raise ValueError('Data is empty!')
 
-    if not isinstance(index, Index):
-        raise TypeError('Index must be of type: Index')
+    if not isinstance(index, int):
+        raise TypeError('Index must be of type: int')
 
-    if index not in range(len(data)):
+    dataSize = len(data)
+
+    if index not in range(dataSize):
         raise IndexError(f'Bad index: {index}')
 
-    if not isinstance(length, Size):
-        raise TypeError('Length must be of type: Size')
+    if not isinstance(length, int):
+        raise TypeError('Length must be of type: int')
 
     if length == 0:
-        raise ZeroError('Length must not be 0!')
+        raise ValueError('Length must not be 0!')
     
-    if index + length > len(data):
+    if index + length > dataSize:
         raise IndexError('Index overflow!')
 
-    buffer = data[index:index+length]
+    window = data[index:index+length]
 
-    if not buffer:
-        raise EmptyError('Buffer is empty!')
+    if not window:
+        raise ValueError('Buffer is empty!')
 
-    buffer_len = len(buffer)
+    windowSize = len(window)
 
-    if buffer_len != length:
-        raise NotEqualError(f'Buffer length mismatch! Got {buffer_len}')
+    if windowSize != length:
+        raise ValueError(f'Buffer length mismatch! Got {windowSize}')
 
-    return buffer
+    return window
 
 
-def replaceBufferAtIndex(data: Buffer, pattern: Buffer, index: Index, length: Size) -> Buffer:
-    if not isinstance(data, Buffer):
-        raise TypeError('Data must be of type: Buffer')
-    
-    if isinstance(data, bytes):
-        data = bytearray(data)
+def replaceBufferAtIndex(data: bytearray, pattern: bytes, index: int, length: int) -> bytearray:
+    if not isinstance(data, bytearray):
+        raise TypeError(f'Data must be of type: {type(bytearray)}')
 
-    elif isinstance(data, str):
-        data = bytearray.fromhex(data)
+    if not isinstance(pattern, bytes):
+        raise TypeError(f'Pattern must be of type: {type(bytes)}')
 
-    if not isinstance(pattern, Buffer):
-        raise TypeError('Pattern must be of type: Buffer')
+    if not isinstance(index, int):
+        raise TypeError('Index must be an int!')
 
-    if isinstance(data, str) and not isinstance(pattern, str):
-        raise TypeError('Data IS str but pattern IS NOT!')
+    if not isinstance(length, int):
+        raise TypeError('Length must be an int!')
 
-    if not isinstance(data, str) and isinstance(pattern, str):
-        raise TypeError('Data IS NOT str but pattern IS!')
+    if length == 0:
+        raise ValueError('Length cannot be 0!')
 
-    isStr = False
+    dataSize = len(data)
 
-    if isinstance(data, str) and isinstance(pattern, str):
-        isStr = True
+    if dataSize < length:
+        raise ValueError(f'Data must be at least {length} bytes or bigger!')
 
-    if len(pattern) != length:
-        raise NotEqualError('Pattern must be the same size as length!')
+    patternSize = len(pattern)
 
-    buffer = getBufferAtIndex(data, index, length)
+    if patternSize != length:
+        raise ValueError('Pattern must be the same size as length!')
 
-    if buffer == pattern:
+    window = getBufferAtIndex(data, index, length)
+
+    if window == pattern:
         return data
 
-    if isStr:
-        dataFront = getBufferAtIndex(data, 0, index)
-        dataBack = getBufferAtIndex(data, index + length, len(data) - length - index)
-        data = ''.join((dataFront, pattern, dataBack))
-
-    else:
-        data[index:index+length] = pattern
-
-    patchedBuffer = getBufferAtIndex(data, index, length)
-
-    if patchedBuffer != pattern:
-        raise ValueError('Failed to replace buffer!')
-
-    if not isinstance(data, bytes):
-        data = bytes(data)
-
+    data[index:index+length] = pattern
     return data

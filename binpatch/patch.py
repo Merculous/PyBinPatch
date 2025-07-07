@@ -1,19 +1,18 @@
 
-from binpatch.errors import NotEqualError
-from .types import WritableBuffer, Differences
+from .types import Differences
 from .utils import getBufferAtIndex, replaceBufferAtIndex
 
 
-def patchFromDifferences(data: WritableBuffer, differences: Differences) -> WritableBuffer:
-    if not isinstance(data, WritableBuffer):
-        raise TypeError('Data must be of type: WritableBuffer')
+def patchFromDifferences(data: bytearray, differences: Differences) -> bytearray:
+    if not isinstance(data, bytearray):
+        raise TypeError(f'Data must be of type: {type(bytearray())}')
 
     for difference in differences:
-        buffer = getBufferAtIndex(data, difference.index, difference.size)
+        buffer = getBufferAtIndex(data, difference.offset, difference.size)
 
         if buffer != difference.a:
-            raise NotEqualError('A attribute not the same!')
+            raise ValueError('A attribute not the same!')
 
-        data = replaceBufferAtIndex(data, difference.b, difference.index, difference.size)
+        data = replaceBufferAtIndex(data, difference.b, difference.offset, difference.size)
 
     return data

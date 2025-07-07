@@ -7,6 +7,7 @@ venv
 *.json
 *.plist
 *.txt
+*.plot
 
 .fseventsd
 *.ipsw
