@@ -1,7 +1,7 @@
 
 def getBufferAtIndex(data: bytes | bytearray, index: int, length: int) -> bytes | bytearray:
     if not isinstance(data, (bytes, bytearray)):
-        raise TypeError(f'Data must be of type: {bytes}')
+        raise TypeError(f'Data must be of type: {bytes} or {bytearray}')
 
     if not data:
         raise ValueError('Data is empty!')
