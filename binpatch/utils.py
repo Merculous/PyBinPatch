@@ -1,6 +1,6 @@
 
-def getBufferAtIndex(data: bytes, index: int, length: int) -> bytes:
-    if not isinstance(data, bytes):
+def getBufferAtIndex(data: bytes | bytearray, index: int, length: int) -> bytes | bytearray:
+    if not isinstance(data, (bytes, bytearray)):
         raise TypeError(f'Data must be of type: {bytes}')
 
     if not data:

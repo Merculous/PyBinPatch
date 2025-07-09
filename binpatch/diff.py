@@ -87,8 +87,8 @@ def readDifferencesJSONFile(path: Path) -> Differences:
         difference = Difference(
             b''.fromhex(info['a']),
             b''.fromhex(info['b']),
-            int(info['size'], 16),
-            int(offset, 16)
+            int(offset, 16),
+            int(info['size'], 16)
         )
 
         differences.append(difference)
