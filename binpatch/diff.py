@@ -26,8 +26,8 @@ def diff(a: bytes, b: bytes) -> Differences:
 
     differences = []
 
-    for i, (aValue, bValue) in enumerate(zip(a, b)):
-        if aValue == bValue:
+    for i in range(aSize):
+        if a[i] == b[i]:
             if differenceStart >= 0 and differenceSize >= 1:
                 difference = Difference(
                     getBufferAtIndex(a, differenceStart, differenceSize),
