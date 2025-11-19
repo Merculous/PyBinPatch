@@ -54,6 +54,17 @@ def diff(a: bytes, b: bytes) -> Differences:
             differenceSize += 1
             continue
 
+    # Get the last difference
+    if differenceStart >= 0 and differenceSize >= 1:
+        difference = Difference(
+            getBufferAtIndex(a, differenceStart, differenceSize),
+            getBufferAtIndex(b, differenceStart, differenceSize),
+            differenceStart,
+            differenceSize
+        )
+
+        differences.append(difference)
+
     return differences
 
 
