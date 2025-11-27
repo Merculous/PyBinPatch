@@ -1,11 +1,13 @@
 
+from collections.abc import MutableSequence
+
 from .types import Differences
 from .utils import getBufferAtIndex, replaceBufferAtIndex
 
 
-def patchFromDifferences(data: bytearray, differences: Differences) -> bytearray:
-    if not isinstance(data, bytearray):
-        raise TypeError(f'Data must be of type: {bytearray}')
+def patchFromDifferences(data: MutableSequence, differences: Differences) -> MutableSequence:
+    if not isinstance(data, MutableSequence):
+        raise TypeError(f'Data must be of type: {MutableSequence}')
 
     for difference in differences:
         buffer = getBufferAtIndex(data, difference.offset, difference.size)

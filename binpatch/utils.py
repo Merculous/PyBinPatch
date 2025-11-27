@@ -1,7 +1,10 @@
 
-def getBufferAtIndex(data: bytes | bytearray, index: int, length: int) -> bytes | bytearray:
-    if not isinstance(data, (bytes, bytearray)):
-        raise TypeError(f'Data must be of type: {bytes} or {bytearray}')
+from collections.abc import MutableSequence, Sequence
+
+
+def getBufferAtIndex(data: Sequence, index: int, length: int) -> Sequence:
+    if not isinstance(data, Sequence):
+        raise TypeError(f'Data must be of type: {Sequence}')
 
     if not data:
         raise ValueError('Data is empty!')
@@ -36,12 +39,12 @@ def getBufferAtIndex(data: bytes | bytearray, index: int, length: int) -> bytes 
     return window
 
 
-def replaceBufferAtIndex(data: bytearray, pattern: bytes, index: int, length: int) -> bytearray:
-    if not isinstance(data, bytearray):
-        raise TypeError(f'Data must be of type: {bytearray}')
+def replaceBufferAtIndex(data: MutableSequence, pattern: Sequence, index: int, length: int) -> MutableSequence:
+    if not isinstance(data, MutableSequence):
+        raise TypeError(f'Data must be of type: {MutableSequence}')
 
-    if not isinstance(pattern, bytes):
-        raise TypeError(f'Pattern must be of type: {bytes}')
+    if not isinstance(pattern, Sequence):
+        raise TypeError(f'Pattern must be of type: {Sequence}')
 
     if not isinstance(index, int):
         raise TypeError('Index must be an int!')

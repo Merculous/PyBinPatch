@@ -11,8 +11,7 @@ def readBytesFromPath(path: Path) -> bytes:
     if not path.is_file():
         raise TypeError('Path must be a file!')
 
-    with path.open('rb') as f:
-        return f.read()
+    return path.read_bytes()
 
 
 def writeBytesToPath(path: Path, data: bytes) -> int:
@@ -22,8 +21,7 @@ def writeBytesToPath(path: Path, data: bytes) -> int:
     if path.is_file():
         raise FileExistsError('Path exists! Not overwriting!')
 
-    with path.open('wb') as f:
-        return f.write(data)
+    return path.write_bytes(data)
 
 
 def readDataFromJSONFile(path: Path) -> Any:

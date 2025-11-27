@@ -1,10 +1,24 @@
 
 from argparse import ArgumentParser
 from pathlib import Path
+from time import perf_counter
 
 from .diff import diffToJSONFile, readDifferencesJSONFile
 from .io import readBytesFromPath, writeBytesToPath
 from .patch import patchFromDifferences
+
+
+def diffFiles(src1Path: Path, src2Path: Path, jsonPath: Path) -> None:
+    aData = readBytesFromPath(src1Path)
+    bData = readBytesFromPath(src2Path)
+    diffToJSONFile(aData, bData, jsonPath)
+
+
+def patchFile(src1Path: Path, src2Path: Path, jsonPath: Path) -> None:
+    aData = bytearray(readBytesFromPath(src1Path))
+    differences = readDifferencesJSONFile(jsonPath)
+    patched = patchFromDifferences(aData, differences)
+    writeBytesToPath(src2Path, patched)
 
 
 def main() -> None:
@@ -18,20 +32,19 @@ def main() -> None:
     parser.add_argument('--patch', action='store_true')
 
     args = parser.parse_args()
+    startTime = perf_counter()
 
     if args.diff:
-        aData = readBytesFromPath(args.a)
-        bData = readBytesFromPath(args.b)
-        diffToJSONFile(aData, bData, args.json)
+        diffFiles(args.a, args.b, args.json)
 
     elif args.patch:
-        aData = bytearray(readBytesFromPath(args.a))
-        differences = readDifferencesJSONFile(args.json)
-        patched = patchFromDifferences(aData, differences)
-        writeBytesToPath(args.b, patched)
+        patchFile(args.a, args.b, args.json)
 
     else:
-        parser.print_help()
+        return parser.print_help()
+
+    endTime = perf_counter() - startTime
+    print(f'Ran in {endTime:.4f} seconds!')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 
 from binascii import hexlify
+from collections.abc import Sequence
 from pathlib import Path
 
 from binpatch.utils import getBufferAtIndex
@@ -8,12 +9,12 @@ from .io import readDataFromJSONFile, writeDataToJSONFile
 from .types import Difference, Differences
 
 
-def diff(a: bytes, b: bytes) -> Differences:
-    if not isinstance(a, bytes):
-        raise TypeError(f'A must be of type: {bytes}')
+def diff(a: Sequence, b: Sequence) -> Differences:
+    if not isinstance(a, Sequence):
+        raise TypeError(f'A must be of type: {Sequence}')
 
-    if not isinstance(b, bytes):
-        raise TypeError(f'B must be of type: {bytes}')
+    if not isinstance(b, Sequence):
+        raise TypeError(f'B must be of type: {Sequence}')
 
     aSize = len(a)
     bSize = len(b)
@@ -68,7 +69,13 @@ def diff(a: bytes, b: bytes) -> Differences:
     return differences
 
 
-def diffToJSONFile(a: bytes, b: bytes, path: Path) -> None:
+def diffToJSONFile(a: Sequence, b: Sequence, path: Path) -> None:
+    if not isinstance(a, Sequence):
+        raise TypeError(f'a must be of type: {Sequence}')
+
+    if not isinstance(b, Sequence):
+        raise TypeError(f'a must be of type: {Sequence}')
+
     if not isinstance(path, Path):
         raise TypeError(f'Path must be of type: {Path}')
 

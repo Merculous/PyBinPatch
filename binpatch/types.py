@@ -1,11 +1,12 @@
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 
 @dataclass
 class Difference:
-    a: bytes
-    b: bytes
+    a: Sequence
+    b: Sequence
     offset: int
     size: int
 
