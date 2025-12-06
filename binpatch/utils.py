@@ -10,7 +10,7 @@ def getBufferAtIndex(data: Sequence, index: int, length: int) -> Sequence:
         raise ValueError('Data is empty!')
 
     if not isinstance(index, int):
-        raise TypeError('Index must be of type: int')
+        raise TypeError(f'Index must be of type: {int}')
 
     dataSize = len(data)
 
@@ -18,7 +18,7 @@ def getBufferAtIndex(data: Sequence, index: int, length: int) -> Sequence:
         raise IndexError(f'Bad index: {index}')
 
     if not isinstance(length, int):
-        raise TypeError('Length must be of type: int')
+        raise TypeError(f'Length must be of type: {int}')
 
     if length == 0:
         raise ValueError('Length must not be 0!')
@@ -47,10 +47,10 @@ def replaceBufferAtIndex(data: MutableSequence, pattern: Sequence, index: int, l
         raise TypeError(f'Pattern must be of type: {Sequence}')
 
     if not isinstance(index, int):
-        raise TypeError('Index must be an int!')
+        raise TypeError(f'Index must be of type: {int}!')
 
     if not isinstance(length, int):
-        raise TypeError('Length must be an int!')
+        raise TypeError(f'Length must be of type {int}!')
 
     if length == 0:
         raise ValueError('Length cannot be 0!')
