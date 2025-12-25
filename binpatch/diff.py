@@ -27,8 +27,8 @@ def diff(a: Sequence, b: Sequence) -> Differences:
 
     differences = []
 
-    for i in range(aSize):
-        if a[i] == b[i]:
+    for i in range(aSize + 1):
+        if differenceStart + differenceSize == aSize or a[i] == b[i]:
             if differenceStart >= 0 and differenceSize >= 1:
                 difference = Difference(
                     getBufferAtIndex(a, differenceStart, differenceSize),
@@ -54,17 +54,6 @@ def diff(a: Sequence, b: Sequence) -> Differences:
         if differenceStart + differenceSize == i:
             differenceSize += 1
             continue
-
-    # Get the last difference
-    if differenceStart >= 0 and differenceSize >= 1:
-        difference = Difference(
-            getBufferAtIndex(a, differenceStart, differenceSize),
-            getBufferAtIndex(b, differenceStart, differenceSize),
-            differenceStart,
-            differenceSize
-        )
-
-        differences.append(difference)
 
     return differences
 
